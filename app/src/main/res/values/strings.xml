@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">EquityPulse</string>
+    <string name="home_screen_title">Stock News</string>
+    <string name="bookmarks_screen_title">Bookmarks</string>
+    <string name="settings_screen_title">Settings</string>
+    <string name="search_hint">Search stocks or news</string>
+    <string name="empty_bookmarks">No bookmarked news yet</string>
+    <string name="empty_news">No news available</string>
+    <string name="network_error">Network error. Please try again</string>
+    <string name="follow_stock">Follow</string>
+    <string name="unfollow_stock">Unfollow</string>
+    <string name="bookmark">Bookmark</string>
+    <string name="unbookmark">Remove bookmark</string>
+    <string name="share">Share</string>
+    <string name="view_full_story">Full Story</string>
+    <string name="categories">Categories</string>
+    <string name="all">All</string>
+    <string name="us_markets">US Markets</string>
+    <string name="global_markets">Global</string>
+    <string name="crypto">Crypto</string>
+    <string name="commodities">Commodities</string>
+</resources>
