@@ -51,6 +51,98 @@ This project follows Test-Driven Development (TDD) principles:
 2. Implement the minimum code needed to pass tests
 3. Refactor to improve code quality while keeping tests passing
 
+## Development Roadmap
+
+### Phase 1: Core Improvements (Current Priority)
+- [ ] **API Integration Enhancement**
+  - Replace hardcoded API key with secure storage solution
+  - Implement proper error handling for API rate limits
+  - Add retry policy with exponential backoff for network failures
+  - Create comprehensive DTOs for all API responses
+
+- [ ] **Performance Optimization**
+  - Implement WorkManager for background data syncing
+  - Add pagination support for news feed with RecycledViewPool
+  - Optimize database queries with proper indices
+  - Implement memory cache for frequently accessed data
+
+- [ ] **Testing Coverage**
+  - Increase unit test coverage to at least 80%
+  - Add integration tests for repository layer
+  - Implement UI tests for main user flows
+  - Set up automated testing pipeline
+
+### Phase 2: Feature Expansion
+- [ ] **Stock Portfolio Tracking**
+  - Add custom stock watchlist creation
+  - Implement portfolio performance analytics
+  - Create price alerts for watched stocks
+  - Add widget support for key portfolio metrics
+
+- [ ] **Advanced News Filtering**
+  - Implement topic-based news filtering
+  - Add sentiment analysis visualization
+  - Create customizable news categories
+  - Add search history and suggestions
+
+- [ ] **Offline Experience**
+  - Implement robust caching strategy
+  - Add scheduled background syncing
+  - Create reading history and offline article management
+  - Implement data compression for offline storage
+
+### Phase 3: User Experience Enhancement
+- [ ] **UI/UX Refinement**
+  - Add animations for state transitions
+  - Implement dynamic theming based on market sentiment
+  - Create custom charts and visualizations
+  - Add accessibility features (TalkBack, content scaling)
+
+- [ ] **Personalization**
+  - Implement user preference learning
+  - Add content recommendation engine
+  - Create customizable home screen layouts
+  - Implement reading time estimates
+
+- [ ] **Social Features**
+  - Add sharing capabilities with custom previews
+  - Implement saved article collections
+  - Create community comment section for news items
+  - Add follow capabilities for specific news sources
+
+### Phase 4: Advanced Features
+- [ ] **Analytics & Insights**
+  - Implement Firebase Analytics for usage tracking
+  - Add crash reporting with Crashlytics
+  - Create user engagement metrics dashboard
+  - Implement A/B testing framework
+
+- [ ] **Performance Monitoring**
+  - Add network performance tracking
+  - Implement startup time optimization
+  - Create custom performance markers for critical paths
+  - Add automated performance regression testing
+
+- [ ] **Scalability Enhancements**
+  - Implement modular architecture with dynamic feature modules
+  - Add multi-module support for faster build times
+  - Create framework for feature toggles and remote config
+  - Implement proper ProGuard rules for app size reduction
+
+## Architectural Considerations
+
+### Current Architecture
+The app follows MVVM with Clean Architecture principles:
+- **Presentation Layer**: Compose UI, ViewModels
+- **Domain Layer**: UseCases, Repository Interfaces
+- **Data Layer**: Repository Implementations, Local & Remote Data Sources
+
+### Suggested Architectural Improvements
+- Implement proper dependency injection with Hilt instead of Dagger for simpler setup
+- Move to MVI pattern for more predictable state management
+- Add proper error handling strategy throughout the app
+- Improve separation of concerns in the Repository layer
+
 ## Contributing
 
 If you'd like to contribute, please fork the repository and create a pull request. Issues and feature requests are welcome!
