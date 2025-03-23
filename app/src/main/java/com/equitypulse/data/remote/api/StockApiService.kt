@@ -1,24 +1,39 @@
 package com.equitypulse.data.remote.api
 
-import com.equitypulse.data.remote.dto.StockDto
+import com.equitypulse.data.remote.dto.StockQuoteResponse
+import com.equitypulse.data.remote.dto.TimeSeriesResponse
+import com.equitypulse.data.remote.dto.CompanyOverviewResponse
+import com.equitypulse.util.Constants
 import retrofit2.http.GET
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface StockApiService {
-    @GET("stocks")
-    suspend fun getAllStocks(
-        @Query("limit") limit: Int = 100,
-        @Query("offset") offset: Int = 0
-    ): List<StockDto>
+    @GET("query")
+    suspend fun getStockQuote(
+        @Query("function") function: String = Constants.FUNCTION_STOCK_QUOTE,
+        @Query("symbol") symbol: String,
+        @Query("apikey") apiKey: String = Constants.API_KEY
+    ): StockQuoteResponse
 
-    @GET("stocks/{symbol}")
-    suspend fun getStockBySymbol(@Path("symbol") symbol: String): StockDto
+    @GET("query")
+    suspend fun getTimeSeriesDaily(
+        @Query("function") function: String = Constants.FUNCTION_TIME_SERIES_DAILY,
+        @Query("symbol") symbol: String,
+        @Query("outputsize") outputSize: String = "compact", // compact returns the latest 100 data points
+        @Query("apikey") apiKey: String = Constants.API_KEY
+    ): TimeSeriesResponse
 
-    @GET("stocks/search")
+    @GET("query")
+    suspend fun getCompanyOverview(
+        @Query("function") function: String = Constants.FUNCTION_COMPANY_OVERVIEW,
+        @Query("symbol") symbol: String,
+        @Query("apikey") apiKey: String = Constants.API_KEY
+    ): CompanyOverviewResponse
+
+    @GET("query")
     suspend fun searchStocks(
-        @Query("query") query: String,
-        @Query("limit") limit: Int = 20,
-        @Query("offset") offset: Int = 0
-    ): List<StockDto>
+        @Query("function") function: String = "SYMBOL_SEARCH",
+        @Query("keywords") keywords: String,
+        @Query("apikey") apiKey: String = Constants.API_KEY
+    ): Map<String, Any>
 } 

@@ -1,150 +1,157 @@
 package com.equitypulse.data.repository
 
 import com.equitypulse.data.local.dao.StockDao
-import com.equitypulse.data.local.entity.toDomainModel
-import com.equitypulse.data.remote.datasource.StockRemoteDataSource
+import com.equitypulse.data.local.entity.StockEntity
+import com.equitypulse.data.local.entity.toStock
+import com.equitypulse.data.remote.api.StockApiService
 import com.equitypulse.data.remote.dto.toEntity
 import com.equitypulse.domain.model.Stock
 import com.equitypulse.domain.repository.StockRepository
+import com.equitypulse.util.Constants
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class StockRepositoryImpl @Inject constructor(
     private val stockDao: StockDao,
-    private val stockRemoteDataSource: StockRemoteDataSource
+    private val stockApiService: StockApiService
 ) : StockRepository {
-
-    override suspend fun getAllStocks(): Flow<List<Stock>> {
+    
+    override suspend fun getAllStocks(): List<Stock> {
         try {
-            // Fetch all stocks from remote source
-            val remoteStocks = stockRemoteDataSource.getAllStocks()
+            // For Alpha Vantage Free API, we'll use a list of popular stock symbols
+            // since we can't fetch all stocks at once
+            val popularSymbols = listOf("AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA", "JPM", "V", "WMT")
             
-            // Get current followed status from DB to preserve it
-            val currentStocks = stockDao.getAllStocks().map { it.map { entity -> entity.toDomainModel() } }
-            val followedMap = mutableMapOf<String, Boolean>()
+            val stockEntities = mutableListOf<StockEntity>()
             
-            // Collect the first value to get the current followed status
-            currentStocks.collect { stocks ->
-                stocks.forEach { stock ->
-                    followedMap[stock.symbol] = stock.isFollowed
+            for (symbol in popularSymbols) {
+                try {
+                    // Get quote for basic price info
+                    val quoteResponse = stockApiService.getStockQuote(symbol = symbol)
+                    
+                    // Get company overview for additional info
+                    val overviewResponse = stockApiService.getCompanyOverview(symbol = symbol)
+                    
+                    // Combine data from both responses
+                    val stockEntity = overviewResponse.toEntity(
+                        currentPrice = quoteResponse.globalQuote.price.toDoubleOrNull() ?: 0.0,
+                        priceChange = quoteResponse.globalQuote.change.toDoubleOrNull() ?: 0.0,
+                        priceChangePercentage = quoteResponse.globalQuote.changePercent.replace("%", "").toDoubleOrNull() ?: 0.0,
+                        lastUpdated = System.currentTimeMillis()
+                    )
+                    
+                    stockEntities.add(stockEntity)
+                    
+                    // Store in local database
+                    stockDao.insertStock(stockEntity)
+                } catch (e: Exception) {
+                    // If API call fails for a stock, continue with the next one
+                    continue
                 }
             }
             
-            // Save to database with preserved followed status
-            stockDao.insertAllStocks(remoteStocks.map { dto ->
-                dto.toEntity(followedMap[dto.symbol] ?: false)
-            })
+            return stockEntities.map { it.toStock() }
         } catch (e: Exception) {
-            // If remote fetch fails, we'll still return cached data
-        }
-        
-        // Return stocks from local database
-        return stockDao.getAllStocks().map { stockList ->
-            stockList.map { it.toDomainModel() }
+            // Return stocks from local database if API fails
+            val entities = stockDao.getAllStocks().firstOrNull() ?: emptyList()
+            return entities.map { it.toStock() }
         }
     }
-
+    
     override suspend fun getStockBySymbol(symbol: String): Stock? {
         try {
-            // Try to fetch from remote
-            val remoteStock = stockRemoteDataSource.getStockBySymbol(symbol)
+            // Try to fetch fresh data
+            val quoteResponse = stockApiService.getStockQuote(symbol = symbol)
+            val overviewResponse = stockApiService.getCompanyOverview(symbol = symbol)
             
-            // Get current followed status from DB if it exists
-            val existingStock = stockDao.getStockBySymbol(symbol)
-            val isFollowed = existingStock?.isFollowed ?: false
+            val stockEntity = overviewResponse.toEntity(
+                currentPrice = quoteResponse.globalQuote.price.toDoubleOrNull() ?: 0.0,
+                priceChange = quoteResponse.globalQuote.change.toDoubleOrNull() ?: 0.0,
+                priceChangePercentage = quoteResponse.globalQuote.changePercent.replace("%", "").toDoubleOrNull() ?: 0.0,
+                lastUpdated = System.currentTimeMillis()
+            )
             
-            // Insert with preserved followed status
-            stockDao.insertStock(remoteStock.toEntity(isFollowed))
+            stockDao.insertStock(stockEntity)
+            
+            return stockEntity.toStock()
         } catch (e: Exception) {
-            // If remote fetch fails, we'll use local data
+            // Return from local database if API fails
+            return stockDao.getStockBySymbol(symbol)?.toStock()
         }
-        
-        // Return from local database
-        return stockDao.getStockBySymbol(symbol)?.toDomainModel()
     }
-
-    override suspend fun getFollowedStocks(): Flow<List<Stock>> {
-        // First refresh all followed stocks
+    
+    override suspend fun searchStocks(query: String): List<Stock> {
         try {
-            // Get all followed stocks symbols
-            val followedStocksFlow = stockDao.getFollowedStocks()
-            val symbols = mutableListOf<String>()
+            val searchResponse = stockApiService.searchStocks(keywords = query)
             
-            // Collect the first value to get the symbols
-            followedStocksFlow.collect { stocks ->
-                symbols.addAll(stocks.map { it.symbol })
+            // Parse the search results
+            val matches = searchResponse["bestMatches"] as? List<Map<String, String>> ?: emptyList()
+            
+            val stockEntities = matches.mapNotNull { match ->
+                val symbol = match["1. symbol"] ?: return@mapNotNull null
+                val name = match["2. name"] ?: return@mapNotNull null
+                
+                StockEntity(
+                    symbol = symbol,
+                    name = name,
+                    currentPrice = 0.0, // We'll need to fetch quotes separately to get current prices
+                    priceChange = 0.0,
+                    priceChangePercentage = 0.0,
+                    lastUpdated = System.currentTimeMillis(),
+                    isFollowed = false
+                )
             }
             
-            // Fetch updated data for each followed stock
-            symbols.forEach { symbol ->
-                try {
-                    val remoteStock = stockRemoteDataSource.getStockBySymbol(symbol)
-                    stockDao.insertStock(remoteStock.toEntity(true))
-                } catch (e: Exception) {
-                    // Ignore errors for individual stocks
-                }
-            }
+            // Store search results in local DB
+            stockEntities.forEach { stockDao.insertStock(it) }
+            
+            return stockEntities.map { it.toStock() }
         } catch (e: Exception) {
-            // If refresh fails, we'll still return cached data
-        }
-        
-        // Return followed stocks from local database
-        return stockDao.getFollowedStocks().map { stockList ->
-            stockList.map { it.toDomainModel() }
+            // Perform a local search if API fails
+            val entities = stockDao.searchStocks(query).firstOrNull() ?: emptyList()
+            return entities.map { it.toStock() }
         }
     }
-
-    override suspend fun followStock(symbol: String, follow: Boolean): Boolean {
-        return stockDao.followStock(symbol, follow) > 0
-    }
-
-    override suspend fun searchStocks(query: String): Flow<List<Stock>> {
-        try {
-            // Search stocks from remote source
-            val remoteStocks = stockRemoteDataSource.searchStocks(query)
-            
-            // Get current followed status to preserve it
-            val followedStocksFlow = stockDao.getFollowedStocks()
-            val followedSymbols = mutableSetOf<String>()
-            
-            // Collect the first value to get the followed symbols
-            followedStocksFlow.collect { stocks ->
-                followedSymbols.addAll(stocks.map { it.symbol })
-            }
-            
-            // Save to database with preserved followed status
-            stockDao.insertAllStocks(remoteStocks.map { dto ->
-                dto.toEntity(followedSymbols.contains(dto.symbol))
-            })
-        } catch (e: Exception) {
-            // If remote fetch fails, we'll still return cached data
-        }
-        
-        // Return search results from local database
-        return stockDao.searchStocks(query).map { stockList ->
-            stockList.map { it.toDomainModel() }
+    
+    override fun getFollowedStocks(): Flow<List<Stock>> {
+        return stockDao.getFollowedStocks().map { entities ->
+            entities.map { it.toStock() }
         }
     }
-
+    
+    override suspend fun followStock(symbol: String, follow: Boolean) {
+        stockDao.updateFollowStatus(symbol, follow)
+    }
+    
+    override suspend fun isStockFollowed(symbol: String): Boolean {
+        return stockDao.isStockFollowed(symbol) ?: false
+    }
+    
     override suspend fun refreshStockPrices(): Boolean {
         try {
-            // Get all stocks from database
-            val allStocksFlow = stockDao.getAllStocks()
-            val stocks = mutableListOf<Stock>()
+            // Get all stocks from local database
+            val stocks = stockDao.getAllStocks().firstOrNull() ?: return false
             
-            // Collect the first value
-            allStocksFlow.collect { stockList ->
-                stocks.addAll(stockList.map { it.toDomainModel() })
-            }
-            
-            // Refresh each stock
-            stocks.forEach { stock ->
+            for (stock in stocks) {
                 try {
-                    val remoteStock = stockRemoteDataSource.getStockBySymbol(stock.symbol)
-                    stockDao.insertStock(remoteStock.toEntity(stock.isFollowed))
+                    // Update price for each stock
+                    val quoteResponse = stockApiService.getStockQuote(symbol = stock.symbol)
+                    val currentPrice = quoteResponse.globalQuote.price.toDoubleOrNull() ?: continue
+                    val priceChange = quoteResponse.globalQuote.change.toDoubleOrNull() ?: continue
+                    val priceChangePercentage = quoteResponse.globalQuote.changePercent.replace("%", "").toDoubleOrNull() ?: continue
+                    
+                    stockDao.updateStockPrice(
+                        symbol = stock.symbol,
+                        price = currentPrice,
+                        change = priceChange,
+                        changePercent = priceChangePercentage,
+                        lastUpdated = System.currentTimeMillis()
+                    )
                 } catch (e: Exception) {
-                    // Ignore errors for individual stocks
+                    // If updating one stock fails, continue with others
+                    continue
                 }
             }
             

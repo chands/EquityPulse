@@ -16,16 +16,24 @@ data class NewsEntity(
     val content: String,
     val originalUrl: String,
     val imageUrl: String,
-    val publishDate: Long,
+    val publishDate: String, // Changed from Long to String to accommodate Alpha Vantage format
     val source: String,
     val relatedStockSymbols: String, // Stored as comma-separated
     val category: String,
     val isBookmarked: Boolean
 )
 
-fun NewsEntity.toDomainModel(): News {
-    val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-    val formattedDate = dateFormat.format(Date(publishDate))
+fun NewsEntity.toNews(): News {
+    // Parse the Alpha Vantage date format (e.g., "20230615T123000")
+    val formattedDate = try {
+        val inputFormat = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+        val date = inputFormat.parse(publishDate)
+        date?.let { outputFormat.format(it) } ?: publishDate
+    } catch (e: Exception) {
+        // Fallback to original string if parsing fails
+        publishDate
+    }
     
     return News(
         id = id,

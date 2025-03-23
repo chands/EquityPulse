@@ -3,14 +3,60 @@
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
-    android:viewportHeight="108"
-    android:tint="#FFFFFF">
-  <group android:scaleX="2.61"
-      android:scaleY="2.61"
-      android:translateX="22.68"
-      android:translateY="22.68">
+    android:viewportHeight="108">
+  <group android:scaleX="1.0"
+      android:scaleY="1.0"
+      android:translateX="0"
+      android:translateY="0">
+      
+    <!-- Gold coin/circle background -->
     <path
-        android:fillColor="@android:color/white"
-        android:pathData="M3.5,18.49l6,-6.01 4,4L22,6.92l-1.41,-1.41 -7.09,7.97 -4,-4L2,16.99z"/>
+        android:fillColor="#FFD700"
+        android:pathData="M54,10C28.7,10 8,30.7 8,56C8,81.3 28.7,102 54,102C79.3,102 100,81.3 100,56C100,30.7 79.3,10 54,10Z"/>
+
+    <!-- Outer ring - gives depth to the coin -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#E6B800"
+        android:strokeWidth="2"
+        android:pathData="M54,12C29.8,12 10,31.8 10,56C10,80.2 29.8,100 54,100C78.2,100 98,80.2 98,56C98,31.8 78.2,12 54,12Z"/>
+
+    <!-- Inner circle for the coin face -->
+    <path
+        android:fillColor="#FFDE40"
+        android:pathData="M54,18C33.1,18 16,35.1 16,56C16,76.9 33.1,94 54,94C74.9,94 92,76.9 92,56C92,35.1 74.9,18 54,18Z"/>
+    
+    <!-- Stock pulse line graph -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#1E8E3E"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M25,69L35,56L45,64L54,40L65,58L75,37L85,48"/>
+    
+    <!-- Financial icon - replacing the Indian Rupee symbol -->
+    <path
+        android:fillColor="#0D47A1"
+        android:pathData="M54,40m-15,0a15,15 0,1 1,30 0a15,15 0,1 1,-30 0"/>
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M54,40m-12,0a12,12 0,1 1,24 0a12,12 0,1 1,-24 0"/>
+    <path
+        android:fillColor="#0D47A1"
+        android:pathData="M48,38L60,38L60,42L48,42z"/>
+    <path
+        android:fillColor="#0D47A1"
+        android:pathData="M52,33L56,33L56,47L52,47z"/>
+    
+    <!-- Stock up arrow -->
+    <path
+        android:fillColor="#1E8E3E"
+        android:pathData="M30,45L25,52H35L30,45z"/>
+    
+    <!-- Stock down arrow (corrected to point downward) -->
+    <path
+        android:fillColor="#D93025"
+        android:pathData="M78,72L73,65H83L78,72z"/>
   </group>
 </vector>

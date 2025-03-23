@@ -16,7 +16,7 @@ data class StockEntity(
     val lastUpdated: Long
 )
 
-fun StockEntity.toDomainModel(): Stock {
+fun StockEntity.toStock(): Stock {
     return Stock(
         symbol = symbol,
         name = name,

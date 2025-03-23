@@ -6,10 +6,10 @@ import javax.inject.Inject
 class FollowStockUseCase @Inject constructor(
     private val stockRepository: StockRepository
 ) {
-    suspend operator fun invoke(symbol: String, follow: Boolean): Result<Boolean> {
+    suspend operator fun invoke(symbol: String, follow: Boolean): Result<Unit> {
         return try {
-            val result = stockRepository.followStock(symbol, follow)
-            Result.success(result)
+            stockRepository.followStock(symbol, follow)
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

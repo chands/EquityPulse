@@ -1,8 +1,10 @@
 package com.equitypulse.presentation.screens.bookmarks
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -136,7 +138,20 @@ fun BookmarkedNewsCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp),
-        onClick = { onNewsClick(news.id) }
+        onClick = { onNewsClick(news.id) },
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 6.dp,
+            pressedElevation = 8.dp,
+            focusedElevation = 8.dp,
+            hoveredElevation = 10.dp,
+            disabledElevation = 2.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Column(
             modifier = Modifier
@@ -145,7 +160,8 @@ fun BookmarkedNewsCard(
         ) {
             Text(
                 text = news.title,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -153,7 +169,8 @@ fun BookmarkedNewsCard(
             Text(
                 text = news.summary,
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2
+                maxLines = 2,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -165,7 +182,8 @@ fun BookmarkedNewsCard(
             ) {
                 Text(
                     text = news.source,
-                    style = MaterialTheme.typography.labelMedium
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
                 IconButton(

@@ -7,7 +7,7 @@ data class News(
     val content: String,
     val originalUrl: String,
     val imageUrl: String,
-    val publishDate: Long,
+    val publishDate: String, // Changed from Long to String to accommodate Alpha Vantage format
     val publishedAt: String, // Formatted date string for display
     val source: String,
     val relatedStockSymbols: List<String>,

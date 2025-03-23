@@ -2,6 +2,7 @@ package com.equitypulse.presentation.common
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.equitypulse.data.local.dao.NewsDao
 import com.equitypulse.domain.repository.NewsRepository
 import com.equitypulse.domain.usecase.BookmarkNewsUseCase
 import com.equitypulse.domain.usecase.GetLatestNewsUseCase
@@ -14,14 +15,19 @@ import javax.inject.Provider
 class ViewModelFactory @Inject constructor(
     private val newsRepository: Provider<NewsRepository>,
     private val getLatestNewsUseCase: Provider<GetLatestNewsUseCase>,
-    private val bookmarkNewsUseCase: Provider<BookmarkNewsUseCase>
+    private val bookmarkNewsUseCase: Provider<BookmarkNewsUseCase>,
+    private val newsDao: Provider<NewsDao>
 ) : ViewModelProvider.Factory {
     
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> {
-                HomeViewModel(getLatestNewsUseCase.get()) as T
+                HomeViewModel(
+                    getLatestNewsUseCase.get(),
+                    newsRepository.get(),
+                    newsDao.get()
+                ) as T
             }
             modelClass.isAssignableFrom(NewsDetailViewModel::class.java) -> {
                 NewsDetailViewModel(

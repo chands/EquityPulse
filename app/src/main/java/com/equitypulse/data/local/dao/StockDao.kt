@@ -19,10 +19,7 @@ interface StockDao {
     @Query("SELECT * FROM stocks WHERE isFollowed = 1 ORDER BY symbol ASC")
     fun getFollowedStocks(): Flow<List<StockEntity>>
 
-    @Query("UPDATE stocks SET isFollowed = :follow WHERE symbol = :symbol")
-    suspend fun followStock(symbol: String, follow: Boolean): Int
-
-    @Query("SELECT * FROM stocks WHERE symbol LIKE '%' || :query || '%' OR name LIKE '%' || :query || '%'")
+    @Query("SELECT * FROM stocks WHERE symbol LIKE '%' || :query || '%' OR name LIKE '%' || :query || '%' ORDER BY symbol ASC")
     fun searchStocks(query: String): Flow<List<StockEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -33,6 +30,21 @@ interface StockDao {
 
     @Update
     suspend fun updateStock(stock: StockEntity)
+
+    @Query("UPDATE stocks SET isFollowed = :follow WHERE symbol = :symbol")
+    suspend fun updateFollowStatus(symbol: String, follow: Boolean)
+
+    @Query("SELECT isFollowed FROM stocks WHERE symbol = :symbol")
+    suspend fun isStockFollowed(symbol: String): Boolean?
+
+    @Query("UPDATE stocks SET currentPrice = :price, priceChange = :change, priceChangePercentage = :changePercent, lastUpdated = :lastUpdated WHERE symbol = :symbol")
+    suspend fun updateStockPrice(
+        symbol: String,
+        price: Double,
+        change: Double,
+        changePercent: Double,
+        lastUpdated: Long
+    )
 
     @Query("DELETE FROM stocks WHERE symbol = :symbol")
     suspend fun deleteStock(symbol: String)

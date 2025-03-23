@@ -1,14 +1,18 @@
 package com.equitypulse.util
 
 object Constants {
-    // Base URLs (you'll need to replace these with actual API endpoints)
-    const val BASE_URL = "https://api.example.com/"
+    const val BASE_URL = "https://www.alphavantage.co/"
+    const val API_KEY = "P901XKSWZKVICW5T"
     
-    // API Keys (store securely in production)
-    const val API_KEY = "YOUR_API_KEY"
+    // Alpha Vantage API Functions
+    const val FUNCTION_STOCK_QUOTE = "GLOBAL_QUOTE"
+    const val FUNCTION_TIME_SERIES_DAILY = "TIME_SERIES_DAILY"
+    const val FUNCTION_COMPANY_OVERVIEW = "OVERVIEW"
+    const val FUNCTION_NEWS_SENTIMENT = "NEWS_SENTIMENT"
+    const val FUNCTION_EARNINGS = "EARNINGS"
     
     // Database
-    const val DATABASE_VERSION = 1
+    const val DATABASE_VERSION = 2
     
     // Network
     const val TIMEOUT_SECONDS = 30L
